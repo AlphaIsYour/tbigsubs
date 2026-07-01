@@ -1,0 +1,361 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  SUPERADMIN @map("superadmin")
+  ADMIN      @map("admin")
+  OPERATOR   @map("operator")
+  VIEWER     @map("viewer")
+
+  @@map("user_role")
+}
+
+enum SubscriptionType {
+  PERMANENT @map("permanent")
+  MONTHLY   @map("monthly")
+
+  @@map("subscription_type")
+}
+
+enum SubscriptionStatus {
+  ACTIVE    @map("active")
+  DUE_SOON  @map("due_soon")
+  OVERDUE   @map("overdue")
+  SUSPENDED @map("expired")
+  CANCELLED @map("cancelled")
+
+  @@map("subscription_status")
+}
+
+enum PaymentStatus {
+  PENDING   @map("pending")
+  PAID      @map("paid")
+  PARTIAL   @map("partial")
+  FAILED    @map("failed")
+  CANCELLED @map("cancelled")
+
+  @@map("payment_status")
+}
+
+enum NotificationChannel {
+  EMAIL    @map("email")
+  SMS      @map("sms")
+  WHATSAPP @map("whatsapp")
+  PUSH     @map("push")
+
+  @@map("notification_channel")
+}
+
+enum NotificationStatus {
+  PENDING @map("pending")
+  SENT    @map("sent")
+  FAILED  @map("failed")
+
+  @@map("notification_status")
+}
+
+enum ReminderType {
+  DUE_SOON @map("due_soon")
+  H1       @map("h1")
+  OVERDUE  @map("overdue")
+
+  @@map("reminder_type")
+}
+
+model User {
+  id           String    @id @default(uuid()) @db.Uuid
+  name         String    @db.VarChar(255)
+  email        String    @unique @db.VarChar(255)
+  passwordHash String?   @map("password_hash") @db.VarChar(255)
+  role         UserRole  @default(OPERATOR)
+  isActive     Boolean   @default(true) @map("is_active")
+  lastLoginAt  DateTime? @map("last_login_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  auditLogs            AuditLog[]
+  createdCustomers     Customer[]     @relation("CustomerCreatedBy")
+  createdSites         Site[]         @relation("SiteCreatedBy")
+  createdContractors   Contractor[]   @relation("ContractorCreatedBy")
+  createdSubscriptions Subscription[] @relation("SubscriptionCreatedBy")
+  recordedPayments     Payment[]      @relation("PaymentRecordedBy")
+
+  @@map("users")
+}
+
+model Customer {
+  id          String    @id @default(uuid()) @db.Uuid
+  code        String    @unique @db.VarChar(50)
+  name        String    @db.VarChar(255)
+  company     String?   @db.VarChar(255)
+  email       String?   @db.VarChar(255)
+  phone       String?   @db.VarChar(50)
+  address     String?
+  picName     String?   @map("pic_name") @db.VarChar(255)
+  picPhone    String?   @map("pic_phone") @db.VarChar(50)
+  picEmail    String?   @map("pic_email") @db.VarChar(255)
+  isPermanent Boolean   @default(false) @map("is_permanent")
+  isActive    Boolean   @default(true) @map("is_active")
+  createdBy   String?   @map("created_by") @db.Uuid
+  notes       String?
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  createdByUser User?          @relation("CustomerCreatedBy", fields: [createdBy], references: [id])
+  sites         Site[]
+  subscriptions Subscription[]
+
+  @@index([deletedAt], map: "idx_customers_deleted_at")
+  @@index([isActive], map: "idx_customers_is_active")
+  @@map("customers")
+}
+
+model Site {
+  id         String    @id @default(uuid()) @db.Uuid
+  code       String    @unique @db.VarChar(50)
+  customerId String    @map("customer_id") @db.Uuid
+  name       String    @db.VarChar(255)
+  address    String?
+  city       String?   @db.VarChar(100)
+  province   String?   @db.VarChar(100)
+  latitude   Decimal?  @db.Decimal(10, 8)
+  longitude  Decimal?  @db.Decimal(11, 8)
+  notes      String?
+  isActive   Boolean   @default(true) @map("is_active")
+  createdBy  String?   @map("created_by") @db.Uuid
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  customer      Customer       @relation(fields: [customerId], references: [id])
+  createdByUser User?          @relation("SiteCreatedBy", fields: [createdBy], references: [id])
+  subscriptions Subscription[]
+
+  @@index([customerId], map: "idx_sites_customer_id")
+  @@index([deletedAt], map: "idx_sites_deleted_at")
+  @@map("sites")
+}
+
+model Contractor {
+  id        String    @id @default(uuid()) @db.Uuid
+  code      String    @unique @db.VarChar(50)
+  name      String    @db.VarChar(255)
+  company   String?   @db.VarChar(255)
+  email     String?   @db.VarChar(255)
+  phone     String?   @db.VarChar(50)
+  address   String?
+  picName   String?   @map("pic_name") @db.VarChar(255)
+  picPhone  String?   @map("pic_phone") @db.VarChar(50)
+  notes     String?
+  isActive  Boolean   @default(true) @map("is_active")
+  createdBy String?   @map("created_by") @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  createdByUser User?          @relation("ContractorCreatedBy", fields: [createdBy], references: [id])
+  subscriptions Subscription[]
+
+  @@index([deletedAt], map: "idx_contractors_deleted_at")
+  @@map("contractors")
+}
+
+model SubscriptionPlan {
+  id           String           @id @default(uuid()) @db.Uuid
+  name         String           @db.VarChar(255)
+  description  String?
+  type         SubscriptionType
+  durationDays Int?             @map("duration_days")
+  price        Decimal          @default(0) @db.Decimal(15, 2)
+  isActive     Boolean          @default(true) @map("is_active")
+  createdAt    DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  subscriptions Subscription[]
+
+  @@map("subscription_plans")
+}
+
+model Subscription {
+  id           String             @id @default(uuid()) @db.Uuid
+  code         String             @unique @db.VarChar(50)
+  customerId   String?            @map("customer_id") @db.Uuid
+  siteId       String             @map("site_id") @db.Uuid
+  contractorId String?            @map("contractor_id") @db.Uuid
+  planId       String             @map("plan_id") @db.Uuid
+  type         SubscriptionType
+  status       SubscriptionStatus @default(ACTIVE)
+  startDate    DateTime           @map("start_date") @db.Date
+  endDate      DateTime?          @map("end_date") @db.Date
+  dueDate      DateTime?          @map("next_billing_date") @db.Date
+  amount       Decimal            @default(0) @db.Decimal(15, 2)
+  autoRenew    Boolean            @default(false) @map("auto_renew")
+  notes        String?
+  isActive     Boolean            @default(true) @map("is_active")
+  createdBy    String?            @map("created_by") @db.Uuid
+  createdAt    DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt    DateTime?          @map("deleted_at") @db.Timestamptz(6)
+
+  customer      Customer?         @relation(fields: [customerId], references: [id])
+  site          Site              @relation(fields: [siteId], references: [id])
+  contractor    Contractor?       @relation(fields: [contractorId], references: [id])
+  plan          SubscriptionPlan  @relation(fields: [planId], references: [id])
+  createdByUser User?             @relation("SubscriptionCreatedBy", fields: [createdBy], references: [id])
+  invoices      Invoice[]
+  payments      Payment[]
+  notifications NotificationLog[]
+  billingCycles BillingCycle[]
+
+  @@index([deletedAt], map: "idx_subscriptions_deleted_at")
+  @@index([dueDate], map: "idx_subscriptions_next_billing_date")
+  @@index([siteId], map: "idx_subscriptions_site_id")
+  @@index([status], map: "idx_subscriptions_status")
+  @@map("subscriptions")
+}
+
+model Invoice {
+  id             String        @id @default(uuid()) @db.Uuid
+  subscriptionId String        @map("subscription_id") @db.Uuid
+  invoiceNumber  String        @unique @map("invoice_number") @db.VarChar(50)
+  periodStart    DateTime      @map("period_start") @db.Date
+  periodEnd      DateTime      @map("period_end") @db.Date
+  amount         Decimal       @db.Decimal(15, 2)
+  status         PaymentStatus @default(PENDING)
+  dueDate        DateTime      @map("due_date") @db.Date
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id])
+  payments     Payment[]
+
+  @@index([subscriptionId])
+  @@index([status])
+  @@map("invoices")
+}
+
+model Payment {
+  id             String        @id @default(uuid()) @db.Uuid
+  code           String        @unique @db.VarChar(50)
+  invoiceId      String?       @map("invoice_id") @db.Uuid
+  subscriptionId String        @map("subscription_id") @db.Uuid
+  billingCycleId String?       @map("billing_cycle_id") @db.Uuid
+  amount         Decimal       @db.Decimal(15, 2)
+  paidAt         DateTime      @map("payment_date") @db.Date
+  method         String?       @map("payment_method") @db.VarChar(100)
+  reference      String?       @map("reference_number") @db.VarChar(255)
+  notes          String?
+  status         PaymentStatus @default(PAID)
+  recordedBy     String?       @map("recorded_by") @db.Uuid
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  invoice        Invoice?      @relation(fields: [invoiceId], references: [id])
+  subscription   Subscription  @relation(fields: [subscriptionId], references: [id])
+  billingCycle   BillingCycle? @relation(fields: [billingCycleId], references: [id])
+  recordedByUser User?         @relation("PaymentRecordedBy", fields: [recordedBy], references: [id])
+
+  @@index([subscriptionId], map: "idx_payments_subscription_id")
+  @@map("payments")
+}
+
+model ReminderRule {
+  id              String              @id @default(uuid()) @db.Uuid
+  name            String              @db.VarChar(255)
+  type            ReminderType
+  daysBeforeDue   Int?                @map("days_before")
+  channel         NotificationChannel @default(EMAIL)
+  isActive        Boolean             @default(true) @map("is_active")
+  templateSubject String?             @map("template_subject") @db.VarChar(500)
+  templateBody    String?             @map("template_body")
+  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  notifications NotificationLog[]
+
+  @@map("reminder_rules")
+}
+
+model NotificationLog {
+  id             String              @id @default(uuid()) @db.Uuid
+  subscriptionId String              @map("subscription_id") @db.Uuid
+  billingCycleId String?             @map("billing_cycle_id") @db.Uuid
+  reminderRuleId String?             @map("reminder_rule_id") @db.Uuid
+  channel        NotificationChannel @default(EMAIL)
+  type           ReminderType        @default(DUE_SOON)
+  triggerType    String?             @map("trigger_type") @db.VarChar(100)
+  recipient      String?             @map("recipient_email") @db.VarChar(255)
+  recipientName  String?             @map("recipient_name") @db.VarChar(255)
+  subject        String?             @db.VarChar(500)
+  message        String?             @map("body")
+  status         NotificationStatus  @default(PENDING)
+  sentAt         DateTime?           @map("sent_at") @db.Timestamptz(6)
+  errorMessage   String?             @map("error_message")
+  createdAt      DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  subscription Subscription  @relation(fields: [subscriptionId], references: [id])
+  reminderRule ReminderRule? @relation(fields: [reminderRuleId], references: [id])
+  billingCycle BillingCycle? @relation(fields: [billingCycleId], references: [id])
+
+  @@index([createdAt], map: "idx_notification_logs_created_at")
+  @@index([subscriptionId], map: "idx_notification_logs_subscription_id")
+  @@map("notification_logs")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String?  @map("user_id") @db.Uuid
+  userEmail  String?  @map("user_email") @db.VarChar(255)
+  action     String   @db.VarChar(100)
+  entityType String   @map("resource_type") @db.VarChar(100)
+  entityId   String?  @map("resource_id") @db.VarChar(255)
+  oldValue   Json?    @map("old_data")
+  newValue   Json?    @map("new_data")
+  ipAddress  String?  @map("ip_address") @db.VarChar(50)
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([createdAt], map: "idx_audit_logs_created_at")
+  @@index([entityType, entityId], map: "idx_audit_logs_resource")
+  @@index([userId], map: "idx_audit_logs_user_id")
+  @@map("audit_logs")
+}
+
+model BillingCycle {
+  id             String        @id @default(uuid()) @db.Uuid
+  subscriptionId String        @map("subscription_id") @db.Uuid
+  cycleNumber    Int           @map("cycle_number")
+  startDate      DateTime      @map("start_date") @db.Date
+  endDate        DateTime      @map("end_date") @db.Date
+  dueDate        DateTime      @map("due_date") @db.Date
+  amount         Decimal       @db.Decimal(15, 2)
+  status         PaymentStatus @default(PENDING)
+  paidAt         DateTime?     @map("paid_at") @db.Timestamptz(6)
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  subscription  Subscription      @relation(fields: [subscriptionId], references: [id])
+  payments      Payment[]
+  notifications NotificationLog[]
+
+  @@index([dueDate], map: "idx_billing_cycles_due_date")
+  @@index([status], map: "idx_billing_cycles_status")
+  @@index([subscriptionId], map: "idx_billing_cycles_subscription_id")
+  @@map("billing_cycles")
+}
+
+model SchemaMigration {
+  version BigInt  @id
+  dirty   Boolean
+
+  @@map("schema_migrations")
+}
