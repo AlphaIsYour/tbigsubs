@@ -1,27 +1,30 @@
-import { auth } from "@/lib/auth";
-import { NextResponse } from "next/server";
+import NextAuth from "next-auth";
+import { authConfig } from "@/lib/auth.config";
+
+const { auth } = NextAuth(authConfig);
 
 export default auth((req) => {
   const isLoggedIn = !!req.auth;
-  const isAuthRoute = req.nextUrl.pathname.startsWith("/login");
-  const isDashboardRoute =
-    req.nextUrl.pathname.startsWith("/dashboard") ||
-    req.nextUrl.pathname.startsWith("/customers") ||
-    req.nextUrl.pathname.startsWith("/sites") ||
-    req.nextUrl.pathname.startsWith("/contractors") ||
-    req.nextUrl.pathname.startsWith("/subscriptions") ||
-    req.nextUrl.pathname.startsWith("/payments") ||
-    req.nextUrl.pathname.startsWith("/audit-logs");
+  const { pathname } = req.nextUrl;
 
-  if (isDashboardRoute && !isLoggedIn) {
-    return NextResponse.redirect(new URL("/login", req.url));
+  const isAuthRoute = pathname.startsWith("/login");
+  const isProtectedRoute =
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/customers") ||
+    pathname.startsWith("/sites") ||
+    pathname.startsWith("/contractors") ||
+    pathname.startsWith("/subscriptions") ||
+    pathname.startsWith("/payments") ||
+    pathname.startsWith("/notifications") ||
+    pathname.startsWith("/audit-logs");
+
+  if (isProtectedRoute && !isLoggedIn) {
+    return Response.redirect(new URL("/login", req.url));
   }
 
   if (isAuthRoute && isLoggedIn) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+    return Response.redirect(new URL("/dashboard", req.url));
   }
-
-  return NextResponse.next();
 });
 
 export const config = {
@@ -32,6 +35,7 @@ export const config = {
     "/contractors/:path*",
     "/subscriptions/:path*",
     "/payments/:path*",
+    "/notifications/:path*",
     "/audit-logs/:path*",
     "/login",
   ],
