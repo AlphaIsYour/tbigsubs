@@ -29,11 +29,11 @@ export default async function AuditLogsPage({
     <div>
       <h1 className="text-lg font-bold text-ink mb-4">Log Audit</h1>
 
-      <form className="mb-4" method="get">
+      <form className="mb-4 flex flex-col sm:flex-row gap-2" method="get">
         <select
           name="entityType"
           defaultValue={entityType}
-          className="border border-border px-3 py-2 text-sm"
+          className="border border-border px-3 py-2 text-sm w-full sm:w-auto"
         >
           <option value="">Semua Entitas</option>
           <option value="Customer">Pelanggan</option>
@@ -46,12 +46,13 @@ export default async function AuditLogsPage({
         </select>
         <button
           type="submit"
-          className="ml-2 bg-primary text-white text-sm px-4 py-2"
+          className="bg-primary text-white text-sm px-4 py-2"
         >
           FILTER
         </button>
       </form>
 
+      <div className="table-responsive">
       <table>
         <thead>
           <tr>
@@ -81,6 +82,7 @@ export default async function AuditLogsPage({
           )}
         </tbody>
       </table>
+      </div>
 
       <div className="mt-4 text-xs text-ink-muted">
         Halaman {page} dari {totalPages || 1} ({total} data)

@@ -50,9 +50,17 @@ table td {
   padding: 8px 12px;
   text-align: left;
   font-size: 13px;
+  white-space: nowrap;
 }
 
 table th {
   background-color: var(--color-surface-muted);
   font-weight: 600;
+}
+
+/* Responsive table wrapper */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }

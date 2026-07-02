@@ -1,7 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { Sidebar } from "@/components/layout/sidebar";
-import { Topbar } from "@/components/layout/topbar";
+import { DashboardShell } from "@/components/layout/dashboard-shell";
 
 export default async function DashboardLayout({
   children,
@@ -15,15 +14,11 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex">
-      <Sidebar />
-      <div className="flex-1">
-        <Topbar
-          userName={session.user.name ?? "-"}
-          userRole={(session.user as { role?: string }).role ?? "-"}
-        />
-        <main className="p-6">{children}</main>
-      </div>
-    </div>
+    <DashboardShell
+      userName={session.user.name ?? "-"}
+      userRole={(session.user as { role?: string }).role ?? "-"}
+    >
+      {children}
+    </DashboardShell>
   );
 }

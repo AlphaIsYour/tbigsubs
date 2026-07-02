@@ -37,32 +37,33 @@ export default async function CustomersPage({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
         <h1 className="text-lg font-bold text-ink">Data Pelanggan</h1>
         <Link
           href="/customers/new"
-          className="bg-primary-dark text-white text-sm px-4 py-2"
+          className="bg-primary-dark text-white text-sm px-4 py-2 text-center"
         >
           TAMBAH PELANGGAN
         </Link>
       </div>
 
-      <form className="mb-4" method="get">
+      <form className="mb-4 flex flex-col sm:flex-row gap-2" method="get">
         <input
           type="text"
           name="search"
           defaultValue={search}
           placeholder="Cari nama atau email..."
-          className="border border-border px-3 py-2 text-sm w-72"
+          className="border border-border px-3 py-2 text-sm w-full sm:w-72"
         />
         <button
           type="submit"
-          className="ml-2 bg-primary text-white text-sm px-4 py-2"
+          className="bg-primary text-white text-sm px-4 py-2"
         >
           CARI
         </button>
       </form>
 
+      <div className="table-responsive">
       <table>
         <thead>
           <tr>
@@ -99,6 +100,7 @@ export default async function CustomersPage({
           )}
         </tbody>
       </table>
+      </div>
 
       <div className="mt-4 text-xs text-ink-muted">
         Halaman {page} dari {totalPages || 1} ({total} data)

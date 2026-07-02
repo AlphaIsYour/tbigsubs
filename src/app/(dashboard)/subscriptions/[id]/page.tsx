@@ -36,7 +36,7 @@ export default async function SubscriptionDetailPage({
       <h1 className="text-lg font-bold text-ink mb-4">Detail Langganan</h1>
 
       <div className="bg-white border border-border p-6 mb-6">
-        <div className="grid grid-cols-2 gap-4 text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
           <div>
             <span className="text-ink-muted text-xs block">Pelanggan</span>
             {subscription.customer?.name ?? subscription.site.customer.name}
@@ -81,6 +81,7 @@ export default async function SubscriptionDetailPage({
       </div>
 
       <h2 className="text-base font-bold text-ink mb-2">Riwayat Tagihan</h2>
+      <div className="table-responsive">
       <table className="mb-6">
         <thead>
           <tr>
@@ -113,8 +114,10 @@ export default async function SubscriptionDetailPage({
           )}
         </tbody>
       </table>
+      </div>
 
-      <h2 className="text-base font-bold text-ink mb-2">Riwayat Notifikasi</h2>
+      <h2 className="text-base font-bold text-ink mb-2 mt-6">Riwayat Notifikasi</h2>
+      <div className="table-responsive">
       <table>
         <thead>
           <tr>
@@ -144,6 +147,7 @@ export default async function SubscriptionDetailPage({
           )}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
