@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ClientBreadcrumb } from "@/components/ui/client-breadcrumb";
 
 export default function NewCustomerPage() {
   const router = useRouter();
@@ -41,6 +42,7 @@ export default function NewCustomerPage() {
 
   return (
     <div className="max-w-xl">
+      <ClientBreadcrumb items={[{ label: "Pelanggan", href: "/customers" }, { label: "Tambah" }]} />
       <h1 className="text-lg font-bold text-ink mb-4">Tambah Pelanggan</h1>
 
       <form

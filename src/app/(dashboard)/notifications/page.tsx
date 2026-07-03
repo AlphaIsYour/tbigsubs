@@ -1,4 +1,6 @@
 import { db } from "@/lib/db";
+import { Pagination } from "@/components/ui/pagination";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 const STATUS_COLOR: Record<string, string> = {
   PENDING: "text-ink-muted",
@@ -39,6 +41,7 @@ export default async function NotificationsPage({
 
   return (
     <div>
+      <Breadcrumb items={[{ label: "Notifikasi" }]} />
       <h1 className="text-lg font-bold text-ink mb-4">Riwayat Notifikasi</h1>
 
       <form className="mb-4 flex flex-col sm:flex-row gap-2" method="get">
@@ -98,9 +101,13 @@ export default async function NotificationsPage({
       </table>
       </div>
 
-      <div className="mt-4 text-xs text-ink-muted">
-        Halaman {page} dari {totalPages || 1} ({total} data)
-      </div>
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        totalItems={total}
+        basePath="/notifications"
+        searchParams={search ? { search } : {}}
+      />
     </div>
   );
 }

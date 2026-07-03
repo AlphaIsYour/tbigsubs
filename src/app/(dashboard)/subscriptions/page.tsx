@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { Pagination } from "@/components/ui/pagination";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 const STATUS_LABEL: Record<string, string> = {
   ACTIVE: "Aktif",
@@ -71,6 +73,7 @@ export default async function SubscriptionsPage({
 
   return (
     <div>
+      <Breadcrumb items={[{ label: "Langganan" }]} />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
         <h1 className="text-lg font-bold text-ink">Data Langganan</h1>
         <Link
@@ -167,9 +170,15 @@ export default async function SubscriptionsPage({
       </table>
       </div>
 
-      <div className="mt-4 text-xs text-ink-muted">
-        Halaman {page} dari {totalPages || 1} ({total} data)
-      </div>
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        totalItems={total}
+        basePath="/subscriptions"
+        searchParams={Object.fromEntries(
+          Object.entries({ search, status, type }).filter(([, v]) => v)
+        )}
+      />
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ClientBreadcrumb } from "@/components/ui/client-breadcrumb";
 
 interface InvoiceOption {
   id: string;
@@ -73,6 +74,7 @@ export default function NewPaymentPage() {
 
   return (
     <div className="max-w-xl">
+      <ClientBreadcrumb items={[{ label: "Pembayaran", href: "/payments" }, { label: "Catat" }]} />
       <h1 className="text-lg font-bold text-ink mb-4">Catat Pembayaran</h1>
 
       <form

@@ -3,7 +3,7 @@ import "./globals.css";
 import { SessionProvider } from "@/components/providers/session-provider";
 
 export const metadata: Metadata = {
-  title: "Sistem Pengingat Langganan dan Penagihan",
+  title: "TBIG Subs - Subscription & Billing Reminder System",
   description: "Internal billing reminder system",
 };
 

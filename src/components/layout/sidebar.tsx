@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import Image from "next/image";
 
 const MENU = [
   { label: "Dashboard", href: "/dashboard" },
@@ -57,9 +58,10 @@ export function Sidebar({
           ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
-        <div className="flex items-center justify-between px-3 py-4 border-b border-white/20 h-14">
-          <span className="font-bold text-xs tracking-wide uppercase truncate">
-            Sistem Penagihan
+        <div className="flex items-center gap-2 px-3 py-4 border-b border-white/20 h-14">
+          <Image src="/tbigsubs.png" alt="TBIG Subs Logo" width={24} height={24} className="object-contain shrink-0" />
+          <span className="font-bold text-sm tracking-wide uppercase truncate">
+            TBIG Subs
           </span>
           <button
             onClick={onMobileClose}
@@ -109,15 +111,22 @@ export function Sidebar({
           ${desktopCollapsed ? "w-14" : "w-60"}
         `}
       >
-        <div className="flex items-center justify-between px-3 py-4 border-b border-white/20 h-14">
+        <div className={`flex items-center border-b border-white/20 h-14 ${
+          desktopCollapsed ? "justify-center px-0" : "justify-between px-3 py-4"
+        }`}>
           {!desktopCollapsed && (
-            <span className="font-bold text-xs tracking-wide uppercase truncate">
-              Sistem Penagihan
-            </span>
+            <div className="flex items-center gap-2 overflow-hidden">
+              <Image src="/tbigsubs.png" alt="TBIG Subs Logo" width={24} height={24} className="object-contain shrink-0" />
+              <span className="font-bold text-sm tracking-wide uppercase truncate">
+                TBIG Subs
+              </span>
+            </div>
           )}
           <button
             onClick={onDesktopToggle}
-            className="ml-auto flex items-center justify-center w-8 h-8 hover:bg-white/10 shrink-0"
+            className={`flex items-center justify-center w-8 h-8 hover:bg-white/10 shrink-0 ${
+              desktopCollapsed ? "" : "ml-auto"
+            }`}
             title={desktopCollapsed ? "Buka sidebar" : "Tutup sidebar"}
           >
             {desktopCollapsed ? (
@@ -153,7 +162,9 @@ export function Sidebar({
                 key={item.href}
                 href={item.href}
                 title={desktopCollapsed ? item.label : undefined}
-                className={`flex items-center h-10 text-sm px-3 gap-3 ${
+                className={`flex items-center h-10 text-sm ${
+                  desktopCollapsed ? "justify-center px-0" : "px-3 gap-3"
+                } ${
                   isActive ? "bg-[#1E99D5] font-semibold" : "hover:bg-white/10"
                 }`}
               >

@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { ClientBreadcrumb } from "@/components/ui/client-breadcrumb";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 
 export default function ContractorDetailPage() {
   const router = useRouter();
@@ -16,6 +18,7 @@ export default function ContractorDetailPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     fetch(`/api/contractors/${id}`)
@@ -59,9 +62,8 @@ export default function ContractorDetailPage() {
     router.push("/contractors");
   }
 
-  async function handleDelete() {
-    if (!confirm("Hapus kontraktor ini?")) return;
-
+  async function executeDelete() {
+    setShowDeleteConfirm(false);
     const res = await fetch(`/api/contractors/${id}`, { method: "DELETE" });
     if (!res.ok) {
       const data = await res.json();
@@ -76,6 +78,7 @@ export default function ContractorDetailPage() {
 
   return (
     <div className="max-w-xl">
+      <ClientBreadcrumb items={[{ label: "Kontraktor", href: "/contractors" }, { label: "Detail" }]} />
       <h1 className="text-lg font-bold text-ink mb-4">Detail Kontraktor</h1>
 
       <form onSubmit={handleSubmit} className="bg-white border border-border p-6">
@@ -129,13 +132,23 @@ export default function ContractorDetailPage() {
           </button>
           <button
             type="button"
-            onClick={handleDelete}
+            onClick={() => setShowDeleteConfirm(true)}
             className="border border-status-overdue text-status-overdue px-4 py-2 text-sm font-semibold"
           >
             HAPUS
           </button>
         </div>
       </form>
+
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        title="Hapus Kontraktor"
+        message="Apakah Anda yakin ingin menghapus data kontraktor ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="HAPUS"
+        isDanger
+        onConfirm={executeDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 }

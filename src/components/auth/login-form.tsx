@@ -3,6 +3,7 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -35,8 +36,11 @@ export default function LoginForm() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface-muted px-4">
       <div className="bg-white border border-border p-8 w-full max-w-80">
-        <h1 className="text-base font-bold text-ink mb-1">Sistem Penagihan</h1>
-        <p className="text-xs text-ink-muted mb-6">Masuk untuk melanjutkan</p>
+        <div className="flex flex-col items-center mb-6">
+          <Image src="/tbigsubs.png" alt="TBIG Subs Logo" width={48} height={48} className="object-contain mb-2" />
+          <h1 className="text-lg font-bold text-ink">TBIG Subs</h1>
+          <p className="text-xs text-ink-muted mt-1">Masuk untuk melanjutkan</p>
+        </div>
 
         <form onSubmit={handleSubmit}>
           <label className="block text-xs text-ink-muted mb-1">Email</label>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ClientBreadcrumb } from "@/components/ui/client-breadcrumb";
 
 export default function NewContractorPage() {
   const router = useRouter();
@@ -39,6 +40,7 @@ export default function NewContractorPage() {
 
   return (
     <div className="max-w-xl">
+      <ClientBreadcrumb items={[{ label: "Kontraktor", href: "/contractors" }, { label: "Tambah" }]} />
       <h1 className="text-lg font-bold text-ink mb-4">Tambah Kontraktor</h1>
 
       <form

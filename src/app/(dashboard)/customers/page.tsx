@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { Pagination } from "@/components/ui/pagination";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 export default async function CustomersPage({
   searchParams,
@@ -37,6 +39,8 @@ export default async function CustomersPage({
 
   return (
     <div>
+      <Breadcrumb items={[{ label: "Pelanggan" }]} />
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
         <h1 className="text-lg font-bold text-ink">Data Pelanggan</h1>
         <Link
@@ -102,9 +106,13 @@ export default async function CustomersPage({
       </table>
       </div>
 
-      <div className="mt-4 text-xs text-ink-muted">
-        Halaman {page} dari {totalPages || 1} ({total} data)
-      </div>
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        totalItems={total}
+        basePath="/customers"
+        searchParams={search ? { search } : {}}
+      />
     </div>
   );
 }

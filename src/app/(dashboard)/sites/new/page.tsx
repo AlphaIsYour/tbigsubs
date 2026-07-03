@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ClientBreadcrumb } from "@/components/ui/client-breadcrumb";
 
 interface CustomerOption {
   id: string;
@@ -55,6 +56,7 @@ export default function NewSitePage() {
 
   return (
     <div className="max-w-xl">
+      <ClientBreadcrumb items={[{ label: "Lokasi/Site", href: "/sites" }, { label: "Tambah" }]} />
       <h1 className="text-lg font-bold text-ink mb-4">Tambah Lokasi/Site</h1>
 
       <form

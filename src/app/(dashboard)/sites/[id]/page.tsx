@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { ClientBreadcrumb } from "@/components/ui/client-breadcrumb";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 
 interface CustomerOption {
   id: string;
@@ -22,6 +24,7 @@ export default function SiteDetailPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -69,9 +72,8 @@ export default function SiteDetailPage() {
     router.push("/sites");
   }
 
-  async function handleDelete() {
-    if (!confirm("Hapus site ini?")) return;
-
+  async function executeDelete() {
+    setShowDeleteConfirm(false);
     const res = await fetch(`/api/sites/${id}`, { method: "DELETE" });
     if (!res.ok) {
       const data = await res.json();
@@ -86,6 +88,7 @@ export default function SiteDetailPage() {
 
   return (
     <div className="max-w-xl">
+      <ClientBreadcrumb items={[{ label: "Lokasi/Site", href: "/sites" }, { label: "Detail" }]} />
       <h1 className="text-lg font-bold text-ink mb-4">Detail Lokasi/Site</h1>
 
       <form onSubmit={handleSubmit} className="bg-white border border-border p-6">
@@ -146,13 +149,23 @@ export default function SiteDetailPage() {
           </button>
           <button
             type="button"
-            onClick={handleDelete}
+            onClick={() => setShowDeleteConfirm(true)}
             className="border border-status-overdue text-status-overdue px-4 py-2 text-sm font-semibold"
           >
             HAPUS
           </button>
         </div>
       </form>
+
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        title="Hapus Lokasi/Site"
+        message="Apakah Anda yakin ingin menghapus data lokasi/site ini? Data langganan yang dikaitkan dengan site ini mungkin terpengaruh."
+        confirmText="HAPUS"
+        isDanger
+        onConfirm={executeDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 }

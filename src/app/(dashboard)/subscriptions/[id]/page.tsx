@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { RenewButton } from "./renew-button";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 const STATUS_LABEL: Record<string, string> = {
   ACTIVE: "Aktif",
@@ -33,6 +34,7 @@ export default async function SubscriptionDetailPage({
 
   return (
     <div>
+      <Breadcrumb items={[{ label: "Langganan", href: "/subscriptions" }, { label: "Detail" }]} />
       <h1 className="text-lg font-bold text-ink mb-4">Detail Langganan</h1>
 
       <div className="bg-white border border-border p-6 mb-6">

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ClientBreadcrumb } from "@/components/ui/client-breadcrumb";
 
 interface Option {
   id: string;
@@ -88,6 +89,7 @@ export default function NewSubscriptionPage() {
 
   return (
     <div className="max-w-xl">
+      <ClientBreadcrumb items={[{ label: "Langganan", href: "/subscriptions" }, { label: "Tambah" }]} />
       <h1 className="text-lg font-bold text-ink mb-4">Tambah Langganan</h1>
 
       <form

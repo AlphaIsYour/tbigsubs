@@ -1,5 +1,7 @@
 import { db } from "@/lib/db";
 import Link from "next/link";
+import { Pagination } from "@/components/ui/pagination";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 export default async function PaymentsPage({
   searchParams,
@@ -59,6 +61,7 @@ export default async function PaymentsPage({
 
   return (
     <div>
+      <Breadcrumb items={[{ label: "Pembayaran" }]} />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
         <h1 className="text-lg font-bold text-ink">Riwayat Pembayaran</h1>
         <Link
@@ -123,9 +126,13 @@ export default async function PaymentsPage({
       </table>
       </div>
 
-      <div className="mt-4 text-xs text-ink-muted">
-        Halaman {page} dari {totalPages || 1} ({total} data)
-      </div>
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        totalItems={total}
+        basePath="/payments"
+        searchParams={search ? { search } : {}}
+      />
     </div>
   );
 }
