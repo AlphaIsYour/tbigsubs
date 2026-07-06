@@ -82,7 +82,7 @@ async function main() {
     data: {
       code: "PLN-MG",
       name: "PLN Multiguna Client",
-      email: "alphrenoorz@gmail.com",
+      email: "joko.iswanto@tower-bersama.com; dessy.nirmalasari@tower-bersama.com",
       phone: "021-29248900",
       address: "Gedung Tower Bersama, Jakarta",
       isActive: true,

@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { RenewButton } from "./renew-button";
+import { RemindButton } from "./remind-button";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -130,8 +131,9 @@ export default async function SubscriptionDetailPage({
         </div>
 
         {subscription.type === "MONTHLY" && (
-          <div className="mt-4">
+          <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center gap-3 border-t border-border pt-4">
             <RenewButton subscriptionId={subscription.id} />
+            <RemindButton subscriptionId={subscription.id} />
           </div>
         )}
       </div>
