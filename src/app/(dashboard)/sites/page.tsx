@@ -16,7 +16,13 @@ export default async function SitesPage({
   const where = {
     deletedAt: null,
     ...(search
-      ? { name: { contains: search, mode: "insensitive" as const } }
+      ? {
+          OR: [
+            { name: { contains: search, mode: "insensitive" as const } },
+            { code: { contains: search, mode: "insensitive" as const } },
+            { operatorSiteId: { contains: search, mode: "insensitive" as const } },
+          ],
+        }
       : {}),
   };
 
@@ -66,22 +72,30 @@ export default async function SitesPage({
       <table>
         <thead>
           <tr>
+            <th>Site ID</th>
+            <th>Site ID Operator</th>
             <th>Nama Site</th>
-            <th>Pelanggan</th>
-            <th>Kota</th>
+            <th>PIC PMO CME</th>
+            <th>Progress Tower</th>
+            <th>Daya PLN</th>
+            <th>ID Pelanggan PLN</th>
             <th>Aksi</th>
           </tr>
         </thead>
         <tbody>
           {sites.map((s) => (
             <tr key={s.id}>
+              <td><span className="font-semibold text-ink">{s.code}</span></td>
+              <td>{s.operatorSiteId ?? "-"}</td>
               <td>{s.name}</td>
-              <td>{s.customer.name}</td>
-              <td>{s.city ?? "-"}</td>
+              <td>{s.picPmoCme ?? "-"}</td>
+              <td>{s.progressTower ?? "-"}</td>
+              <td>{s.dayaPln ? `${s.dayaPln} kVA` : "-"}</td>
+              <td>{s.plnCustomerId ?? "-"}</td>
               <td>
                 <Link
                   href={`/sites/${s.id}`}
-                  className="text-primary-dark text-xs underline"
+                  className="text-primary-dark text-xs underline font-semibold"
                 >
                   Detail
                 </Link>
@@ -90,7 +104,7 @@ export default async function SitesPage({
           ))}
           {sites.length === 0 && (
             <tr>
-              <td colSpan={4} className="text-center text-ink-muted">
+              <td colSpan={8} className="text-center text-ink-muted">
                 Tidak ada data
               </td>
             </tr>

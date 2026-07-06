@@ -134,6 +134,14 @@ model Site {
   updatedAt  DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
 
+  // Extra fields from Excel
+  operatorSiteId    String?   @map("operator_site_id") @db.VarChar(100)
+  picPmoCme         String?   @map("pic_pmo_cme") @db.VarChar(100)
+  progressTower     String?   @map("progress_tower") @db.VarChar(100)
+  dayaPln           String?   @map("daya_pln") @db.VarChar(50)
+  plnCustomerId     String?   @map("pln_customer_id") @db.VarChar(100)
+  tglNyalaPermanen  DateTime? @map("tgl_nyala_permanen") @db.Date
+
   customer      Customer       @relation(fields: [customerId], references: [id])
   createdByUser User?          @relation("SiteCreatedBy", fields: [createdBy], references: [id])
   subscriptions Subscription[]
@@ -203,6 +211,10 @@ model Subscription {
   createdAt    DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt    DateTime?          @map("deleted_at") @db.Timestamptz(6)
+
+  // Extra fields from Excel
+  mgSuplisiNormal      String?   @map("mg_suplisi_normal") @db.VarChar(50)
+  targetPermanenKonek  DateTime? @map("target_permanen_konek") @db.Date
 
   customer      Customer?         @relation(fields: [customerId], references: [id])
   site          Site              @relation(fields: [siteId], references: [id])

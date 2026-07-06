@@ -40,38 +40,92 @@ export default async function SubscriptionDetailPage({
       <div className="bg-white border border-border p-6 mb-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
           <div>
-            <span className="text-ink-muted text-xs block">Pelanggan</span>
-            {subscription.customer?.name ?? subscription.site.customer.name}
+            <span className="text-ink-muted text-xs block font-medium">Pelanggan</span>
+            <span className="text-ink font-semibold">{subscription.customer?.name ?? subscription.site.customer.name}</span>
           </div>
           <div>
-            <span className="text-ink-muted text-xs block">Site</span>
-            {subscription.site?.name ?? "-"}
+            <span className="text-ink-muted text-xs block font-medium">Site ID / Nama</span>
+            <span className="text-ink font-semibold">{subscription.site?.code} - {subscription.site?.name}</span>
           </div>
           <div>
-            <span className="text-ink-muted text-xs block">Kontraktor</span>
-            {subscription.contractor?.name ?? "-"}
+            <span className="text-ink-muted text-xs block font-medium">Site ID Operator</span>
+            <span className="text-ink font-semibold">{subscription.site?.operatorSiteId ?? "-"}</span>
           </div>
           <div>
-            <span className="text-ink-muted text-xs block">Paket</span>
-            {subscription.plan.name}
+            <span className="text-ink-muted text-xs block font-medium">Kontraktor / Mitra</span>
+            <span className="text-ink font-semibold">{subscription.contractor?.name ?? "-"} ({subscription.contractor?.code ?? "-"})</span>
           </div>
           <div>
-            <span className="text-ink-muted text-xs block">Tipe</span>
-            {subscription.type === "PERMANENT" ? "Permanen" : "Bulanan"}
+            <span className="text-ink-muted text-xs block font-medium">Email Mitra</span>
+            <span className="text-ink font-semibold">{subscription.contractor?.email ?? "-"}</span>
           </div>
           <div>
-            <span className="text-ink-muted text-xs block">Status</span>
-            {STATUS_LABEL[subscription.status]}
+            <span className="text-ink-muted text-xs block font-medium">Paket</span>
+            <span className="text-ink font-semibold">{subscription.plan.name}</span>
           </div>
           <div>
-            <span className="text-ink-muted text-xs block">Tanggal Mulai</span>
-            {new Date(subscription.startDate).toLocaleDateString("id-ID")}
+            <span className="text-ink-muted text-xs block font-medium">Tipe</span>
+            <span className="text-ink font-semibold">{subscription.type === "PERMANENT" ? "Permanen" : "Bulanan"}</span>
           </div>
           <div>
-            <span className="text-ink-muted text-xs block">Jatuh Tempo</span>
-            {subscription.dueDate
-              ? new Date(subscription.dueDate).toLocaleDateString("id-ID")
-              : "-"}
+            <span className="text-ink-muted text-xs block font-medium">Status</span>
+            <span className="text-ink font-semibold">{STATUS_LABEL[subscription.status]}</span>
+          </div>
+          <div>
+            <span className="text-ink-muted text-xs block font-medium">Tanggal Mulai</span>
+            <span className="text-ink font-semibold">{new Date(subscription.startDate).toLocaleDateString("id-ID")}</span>
+          </div>
+          <div>
+            <span className="text-ink-muted text-xs block font-medium">Tanggal Berakhir</span>
+            <span className="text-ink font-semibold">
+              {subscription.endDate
+                ? new Date(subscription.endDate).toLocaleDateString("id-ID")
+                : "-"}
+            </span>
+          </div>
+          <div>
+            <span className="text-ink-muted text-xs block font-medium">Jatuh Tempo</span>
+            <span className="text-ink font-semibold">
+              {subscription.dueDate
+                ? new Date(subscription.dueDate).toLocaleDateString("id-ID")
+                : "-"}
+            </span>
+          </div>
+          <div>
+            <span className="text-ink-muted text-xs block font-medium">MG Type (Suplisi/Normal)</span>
+            <span className="text-ink font-semibold">{subscription.mgSuplisiNormal ?? "-"}</span>
+          </div>
+          <div>
+            <span className="text-ink-muted text-xs block font-medium">Target PLN Permanen Konek</span>
+            <span className="text-ink font-semibold">
+              {subscription.targetPermanenKonek
+                ? new Date(subscription.targetPermanenKonek).toLocaleDateString("id-ID")
+                : "-"}
+            </span>
+          </div>
+          <div>
+            <span className="text-ink-muted text-xs block font-medium">Daya PLN</span>
+            <span className="text-ink font-semibold">{subscription.site?.dayaPln ? `${subscription.site.dayaPln} kVA` : "-"}</span>
+          </div>
+          <div>
+            <span className="text-ink-muted text-xs block font-medium">ID Pelanggan PLN</span>
+            <span className="text-ink font-semibold">{subscription.site?.plnCustomerId ?? "-"}</span>
+          </div>
+          <div>
+            <span className="text-ink-muted text-xs block font-medium">Tgl Nyala Permanen</span>
+            <span className="text-ink font-semibold">
+              {subscription.site?.tglNyalaPermanen
+                ? new Date(subscription.site.tglNyalaPermanen).toLocaleDateString("id-ID")
+                : "-"}
+            </span>
+          </div>
+          <div>
+            <span className="text-ink-muted text-xs block font-medium">PIC PMO CME</span>
+            <span className="text-ink font-semibold">{subscription.site?.picPmoCme ?? "-"}</span>
+          </div>
+          <div>
+            <span className="text-ink-muted text-xs block font-medium">Progress Tower</span>
+            <span className="text-ink font-semibold">{subscription.site?.progressTower ?? "-"}</span>
           </div>
         </div>
 

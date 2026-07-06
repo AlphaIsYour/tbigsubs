@@ -27,6 +27,7 @@ function parseExcelDate(serial: any): Date | null {
 async function main() {
   console.log("🧹 Membersihkan seluruh data lama di database...");
   
+  // Hapus data dengan relasi bergantung terlebih dahulu
   await db.notificationLog.deleteMany({});
   await db.payment.deleteMany({});
   await db.invoice.deleteMany({});
@@ -36,7 +37,6 @@ async function main() {
   await db.contractor.deleteMany({});
   await db.customer.deleteMany({});
   await db.user.deleteMany({});
-  await db.auditLog.deleteMany({});
 
   console.log("✅ Database bersih.");
 
@@ -118,12 +118,18 @@ async function main() {
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
   const rows = XLSX.utils.sheet_to_json(sheet) as any[];
 
+  // Baris pertama (index 0) adalah definisi header di sheet_to_json jika tidak dilewati.
+  // Tapi sheet_to_json secara default memperlakukan baris 1 (yaitu header nama kolom mentah) sebagai kunci.
+  // Dalam hal ini, data[0] adalah row penjelas seperti: { __EMPTY: 'Site ID', ... }
+  // Jadi kita mulai loop dari baris index 1.
+  
   let successCount = 0;
 
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i];
     
-    const siteIdRaw = row.__EMPTY;
+    // Pastikan ada Site ID
+    const siteIdRaw = row.__EMPTY; // __EMPTY adalah Site ID
     if (!siteIdRaw) continue;
     const siteCode = String(siteIdRaw).trim();
 
@@ -148,6 +154,7 @@ async function main() {
     const tglNyalaPermanen = parseExcelDate(row.__EMPTY_13);
     const emailMitra = row[" "] ? String(row[" "]).trim() : null;
 
+    // 1. Create or get Contractor if Mitra Inisial exists
     let contractorId: string | null = null;
     if (mitraInisial) {
       const contractor = await db.contractor.upsert({
@@ -167,6 +174,7 @@ async function main() {
       contractorId = contractor.id;
     }
 
+    // 2. Create Site
     const site = await db.site.upsert({
       where: { code: siteCode },
       update: {
@@ -193,6 +201,7 @@ async function main() {
       },
     });
 
+    // 3. Create Subscription
     const subCode = `SUB-${siteCode}`;
     await db.subscription.upsert({
       where: { code: subCode },

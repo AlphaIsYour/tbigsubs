@@ -51,9 +51,21 @@ export default async function SubscriptionsPage({
     ...(type ? { type: type as "PERMANENT" | "MONTHLY" } : {}),
     ...(search
       ? {
-          customer: {
-            name: { contains: search, mode: "insensitive" as const },
-          },
+          OR: [
+            {
+              customer: {
+                name: { contains: search, mode: "insensitive" as const },
+              },
+            },
+            {
+              site: {
+                OR: [
+                  { name: { contains: search, mode: "insensitive" as const } },
+                  { code: { contains: search, mode: "insensitive" as const } },
+                ],
+              },
+            },
+          ],
         }
       : {}),
   };
@@ -89,8 +101,8 @@ export default async function SubscriptionsPage({
           type="text"
           name="search"
           defaultValue={search}
-          placeholder="Cari nama pelanggan..."
-          className="border border-border px-3 py-2 text-sm w-full sm:w-64">
+          placeholder="Cari Site ID, Nama Site, Pelanggan..."
+          className="border border-border px-3 py-2 text-sm w-full sm:w-80">
         </input>
         <select
           name="status"
@@ -125,10 +137,12 @@ export default async function SubscriptionsPage({
       <table>
         <thead>
           <tr>
-            <th>Pelanggan</th>
-            <th>Site</th>
+            <th>Site ID</th>
+            <th>Site Name</th>
             <th>Paket</th>
-            <th>Tipe</th>
+            <th>MG Type</th>
+            <th>Tgl Mulai</th>
+            <th>Tgl Berakhir</th>
             <th>Jatuh Tempo</th>
             <th>Status</th>
             <th>Aksi</th>
@@ -137,10 +151,20 @@ export default async function SubscriptionsPage({
         <tbody>
           {subs.map((s) => (
             <tr key={s.id}>
-              <td>{s.customer?.name ?? s.site.customer.name}</td>
+              <td><span className="font-semibold text-ink">{s.site.code}</span></td>
               <td>{s.site?.name ?? "-"}</td>
               <td>{s.plan.name}</td>
-              <td>{s.type === "PERMANENT" ? "Permanen" : "Bulanan"}</td>
+              <td>{s.mgSuplisiNormal ?? "-"}</td>
+              <td>
+                {s.startDate
+                  ? new Date(s.startDate).toLocaleDateString("id-ID")
+                  : "-"}
+              </td>
+              <td>
+                {s.endDate
+                  ? new Date(s.endDate).toLocaleDateString("id-ID")
+                  : "-"}
+              </td>
               <td>
                 {s.dueDate
                   ? new Date(s.dueDate).toLocaleDateString("id-ID")
@@ -152,7 +176,7 @@ export default async function SubscriptionsPage({
               <td>
                 <Link
                   href={`/subscriptions/${s.id}`}
-                  className="text-primary-dark text-xs underline"
+                  className="text-primary-dark text-xs underline font-semibold"
                 >
                   Detail
                 </Link>
@@ -161,7 +185,7 @@ export default async function SubscriptionsPage({
           ))}
           {subs.length === 0 && (
             <tr>
-              <td colSpan={7} className="text-center text-ink-muted">
+              <td colSpan={9} className="text-center text-ink-muted">
                 Tidak ada data
               </td>
             </tr>

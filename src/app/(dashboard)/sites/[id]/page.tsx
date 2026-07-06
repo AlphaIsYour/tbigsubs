@@ -14,6 +14,7 @@ export default function SiteDetailPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
   const [customers, setCustomers] = useState<CustomerOption[]>([]);
+  const [siteInfo, setSiteInfo] = useState<any>(null);
   const [form, setForm] = useState({
     customerId: "",
     name: "",
@@ -39,6 +40,7 @@ export default function SiteDetailPage() {
           return;
         }
 
+        setSiteInfo(siteData.data);
         setForm({
           customerId: siteData.data.customerId ?? "",
           name: siteData.data.name ?? "",
@@ -156,6 +158,50 @@ export default function SiteDetailPage() {
           </button>
         </div>
       </form>
+
+      {siteInfo && (
+        <div className="bg-white border border-border p-6 mt-6">
+          <h2 className="text-sm font-bold text-ink mb-4 pb-2 border-b border-border uppercase tracking-wider">
+            Informasi Teknis PLN (Excel)
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div>
+              <span className="text-ink-muted block font-medium">Site ID (Code)</span>
+              <span className="text-ink font-semibold">{siteInfo.code}</span>
+            </div>
+            <div>
+              <span className="text-ink-muted block font-medium">Site ID Operator</span>
+              <span className="text-ink font-semibold">{siteInfo.operatorSiteId ?? "-"}</span>
+            </div>
+            <div>
+              <span className="text-ink-muted block font-medium">PIC PMO CME</span>
+              <span className="text-ink font-semibold">{siteInfo.picPmoCme ?? "-"}</span>
+            </div>
+            <div>
+              <span className="text-ink-muted block font-medium">Progress Tower</span>
+              <span className="text-ink font-semibold">{siteInfo.progressTower ?? "-"}</span>
+            </div>
+            <div>
+              <span className="text-ink-muted block font-medium">Daya PLN</span>
+              <span className="text-ink font-semibold">
+                {siteInfo.dayaPln ? `${siteInfo.dayaPln} kVA` : "-"}
+              </span>
+            </div>
+            <div>
+              <span className="text-ink-muted block font-medium">ID Pelanggan PLN</span>
+              <span className="text-ink font-semibold">{siteInfo.plnCustomerId ?? "-"}</span>
+            </div>
+            <div>
+              <span className="text-ink-muted block font-medium">Tanggal Nyala Permanen</span>
+              <span className="text-ink font-semibold">
+                {siteInfo.tglNyalaPermanen
+                  ? new Date(siteInfo.tglNyalaPermanen).toLocaleDateString("id-ID")
+                  : "-"}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ConfirmModal
         isOpen={showDeleteConfirm}

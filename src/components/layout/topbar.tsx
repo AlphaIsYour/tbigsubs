@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { signOut } from "next-auth/react";
+import Link from "next/link";
 
 interface TopbarProps {
   userName: string;
@@ -78,6 +79,26 @@ export function Topbar({
                 <p className="text-[10px] text-ink-muted uppercase font-semibold">Pengguna</p>
                 <p className="text-xs font-bold text-ink truncate mt-0.5">{userName}</p>
               </div>
+              <Link
+                href="/change-password"
+                onClick={() => setDropdownOpen(false)}
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-ink hover:bg-surface-muted font-semibold text-left transition-colors border-b border-border"
+              >
+                <svg
+                  className="w-4 h-4 text-ink-muted"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  />
+                </svg>
+                Ganti Password
+              </Link>
               <button
                 onClick={() => signOut({ callbackUrl: "/login" })}
                 className="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-status-overdue hover:bg-status-overdue/5 font-semibold text-left transition-colors cursor-pointer"
