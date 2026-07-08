@@ -4,7 +4,6 @@ import {
   SubscriptionStatusChart,
   MonthlyPaymentsChart,
   NotificationTrendChart,
-  SubscriptionTypeChart,
 } from "@/components/dashboard/charts";
 
 function getMonthLabel(date: Date): string {
@@ -14,29 +13,23 @@ function getMonthLabel(date: Date): string {
 export default async function DashboardPage() {
   const now = new Date();
 
-  // ── Summary counts ──
+  // ── Summary counts (Only Temporary Power / MONTHLY) ──
   const [
     activeCount,
     dueSoonCount,
     overdueCount,
-    permanentCount,
     totalCustomers,
     totalSites,
     cancelledCount,
     suspendedCount,
-    monthlyCount,
-    permanentSubCount,
   ] = await Promise.all([
-    db.subscription.count({ where: { status: "ACTIVE", deletedAt: null } }),
-    db.subscription.count({ where: { status: "DUE_SOON", deletedAt: null } }),
-    db.subscription.count({ where: { status: "OVERDUE", deletedAt: null } }),
-    db.customer.count({ where: { isPermanent: true, deletedAt: null } }),
+    db.subscription.count({ where: { status: "ACTIVE", type: "MONTHLY", deletedAt: null } }),
+    db.subscription.count({ where: { status: "DUE_SOON", type: "MONTHLY", deletedAt: null } }),
+    db.subscription.count({ where: { status: "OVERDUE", type: "MONTHLY", deletedAt: null } }),
     db.customer.count({ where: { deletedAt: null } }),
-    db.site.count({ where: { deletedAt: null } }),
-    db.subscription.count({ where: { status: "CANCELLED", deletedAt: null } }),
-    db.subscription.count({ where: { status: "SUSPENDED", deletedAt: null } }),
-    db.subscription.count({ where: { type: "MONTHLY", deletedAt: null } }),
-    db.subscription.count({ where: { type: "PERMANENT", deletedAt: null } }),
+    db.site.count({ where: { deletedAt: null, subscriptions: { some: { type: "MONTHLY" } } } }),
+    db.subscription.count({ where: { status: "CANCELLED", type: "MONTHLY", deletedAt: null } }),
+    db.subscription.count({ where: { status: "SUSPENDED", type: "MONTHLY", deletedAt: null } }),
   ]);
 
   // ── Monthly payments (last 6 months) ──
@@ -50,6 +43,7 @@ export default async function DashboardPage() {
       where: {
         status: "PAID",
         paidAt: { gte: start, lt: end },
+        subscription: { type: "MONTHLY" },
       },
       _sum: { amount: true },
     });
@@ -69,10 +63,18 @@ export default async function DashboardPage() {
 
     const [sentCount, failedCount] = await Promise.all([
       db.notificationLog.count({
-        where: { status: "SENT", createdAt: { gte: start, lt: end } },
+        where: {
+          status: "SENT",
+          createdAt: { gte: start, lt: end },
+          subscription: { type: "MONTHLY" },
+        },
       }),
       db.notificationLog.count({
-        where: { status: "FAILED", createdAt: { gte: start, lt: end } },
+        where: {
+          status: "FAILED",
+          createdAt: { gte: start, lt: end },
+          subscription: { type: "MONTHLY" },
+        },
       }),
     ]);
 
@@ -83,10 +85,11 @@ export default async function DashboardPage() {
     });
   }
 
-  // ── Upcoming due subscriptions ──
+  // ── Upcoming due subscriptions (Only Temporary Power) ──
   const upcomingDue = await db.subscription.findMany({
     where: {
       deletedAt: null,
+      type: "MONTHLY",
       status: { in: ["ACTIVE", "DUE_SOON", "OVERDUE"] },
       dueDate: { not: null },
     },
@@ -98,8 +101,13 @@ export default async function DashboardPage() {
     },
   });
 
-  // ── Recent notifications ──
+  // ── Recent notifications (Only Temporary Power) ──
   const recentNotifs = await db.notificationLog.findMany({
+    where: {
+      subscription: {
+        type: "MONTHLY",
+      },
+    },
     orderBy: { createdAt: "desc" },
     take: 5,
     include: {
@@ -118,24 +126,18 @@ export default async function DashboardPage() {
     { name: "Dibatalkan", value: cancelledCount, color: "#9ca3af" },
   ].filter((d) => d.value > 0);
 
-  const typeChartData = [
-    { name: "Bulanan", value: monthlyCount, color: "#1e99d5" },
-    { name: "Permanen", value: permanentSubCount, color: "#11499e" },
-  ].filter((d) => d.value > 0);
-
   return (
     <div>
       <h1 className="text-lg font-bold text-ink mb-4">Ringkasan Dashboard</h1>
 
       {/* ── Summary Cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
         {[
-          { label: "Langganan Aktif", value: activeCount, color: "text-status-active" },
+          { label: "Temporary Power Aktif", value: activeCount, color: "text-status-active" },
           { label: "Akan Jatuh Tempo", value: dueSoonCount, color: "text-status-dueSoon" },
           { label: "Lewat Jatuh Tempo", value: overdueCount, color: "text-status-overdue" },
           { label: "Total Pelanggan", value: totalCustomers, color: "text-primary-dark" },
           { label: "Total Site", value: totalSites, color: "text-primary-dark" },
-          { label: "Pelanggan Permanen", value: permanentCount, color: "text-primary" },
         ].map((card) => (
           <div key={card.label} className="bg-white border border-border p-4">
             <div className="text-xs text-ink-muted uppercase">{card.label}</div>
@@ -153,9 +155,8 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── Charts Row 2 ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 gap-4 mb-6">
         <NotificationTrendChart data={notifTrend} />
-        <SubscriptionTypeChart data={typeChartData} />
       </div>
 
       {/* ── Tables Row ── */}

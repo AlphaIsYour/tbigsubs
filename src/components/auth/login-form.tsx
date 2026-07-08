@@ -36,10 +36,10 @@ export default function LoginForm() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface-muted px-4">
       <div className="bg-white border border-border p-8 w-full max-w-80">
-        <div className="flex flex-col items-center mb-6">
-          <Image src="/tbigsubs.png" alt="TBIG Subs Logo" width={48} height={48} className="object-contain mb-2" />
-          <h1 className="text-lg font-bold text-ink">TBIG Subs</h1>
-          <p className="text-xs text-ink-muted mt-1">Masuk untuk melanjutkan</p>
+        <div className="flex flex-col items-center mb-6 text-center">
+          <Image src="/tbigsubs.png" alt="SPARK Logo" width={48} height={48} className="object-contain mb-2" />
+          <h1 className="text-lg font-bold text-ink">SPARK</h1>
+          <p className="text-[11px] text-ink-muted mt-1">Monitoring Temporary Power</p>
         </div>
 
         <form onSubmit={handleSubmit}>

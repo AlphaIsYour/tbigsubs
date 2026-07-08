@@ -36,6 +36,7 @@ export async function runReminderJob(): Promise<{
       customer: true,
       site: { include: { customer: true } },
       plan: true,
+      contractor: true,
     },
   });
 
@@ -60,12 +61,22 @@ export async function runReminderJob(): Promise<{
     }
 
     const customer = sub.customer ?? sub.site.customer;
-    const rawRecipient = customer.email;
-    if (!rawRecipient) {
+    const adminEmail = customer.email ? customer.email.replace(/;/g, ",") : "";
+    const contractorEmail = sub.contractor?.email ? sub.contractor.email.trim() : null;
+
+    let toEmail = "";
+    let ccEmail: string | undefined = undefined;
+
+    // Send to Mitra (Contractor) as TO, and Admin as CC
+    if (contractorEmail) {
+      toEmail = contractorEmail;
+      ccEmail = adminEmail || undefined;
+    } else if (adminEmail) {
+      toEmail = adminEmail;
+    } else {
       skipped++;
       continue;
     }
-    const recipientEmail = rawRecipient.replace(/;/g, ",");
 
     const todayKey = today.toISOString().slice(0, 10);
     const alreadySent = await db.notificationLog.findFirst({
@@ -81,12 +92,6 @@ export async function runReminderJob(): Promise<{
       continue;
     }
 
-    const formattedAmount = new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(Number(sub.amount));
-
     const formattedDueDate = sub.dueDate.toLocaleDateString("id-ID", {
       weekday: "long",
       year: "numeric",
@@ -95,8 +100,8 @@ export async function runReminderJob(): Promise<{
     });
 
     const subject = isOverdue
-      ? `[PERINGATAN] Tagihan Melewati Jatuh Tempo - ${customer.name}`
-      : `[PENGINGAT] Tagihan Jatuh Tempo - ${customer.name}`;
+      ? `[PERINGATAN SPARK] Jatuh Tempo Penyambungan PLN Sementara - ${sub.site.name}`
+      : `[PENGINGAT SPARK] Jatuh Tempo Penyambungan PLN Sementara - ${sub.site.name}`;
 
     const html = `
       <!DOCTYPE html>
@@ -107,69 +112,67 @@ export async function runReminderJob(): Promise<{
           body { font-family: Arial, sans-serif; background-color: #f4f5f7; color: #1a1a1a; margin: 0; padding: 20px; }
           .container { max-width: 600px; background-color: #ffffff; border: 2px solid #d6d9dd; padding: 30px; margin: 0 auto; }
           .header { text-align: center; border-bottom: 1px solid #d6d9dd; padding-bottom: 20px; margin-bottom: 20px; }
-          .header h1 { color: #11499e; font-size: 20px; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+          .header h1 { color: #11499e; font-size: 24px; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+          .header p { font-size: 11px; color: #5c5f66; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 1px; }
           .greeting { font-size: 14px; line-height: 1.6; margin-bottom: 15px; }
-          .alert-box { padding: 15px; border-left: 4px solid ${isOverdue ? "#b3261e" : "#b8860b"}; background-color: ${isOverdue ? "#fdf2f2" : "#fefdf0"}; color: ${isOverdue ? "#b3261e" : "#b8860b"}; font-size: 13px; font-weight: bold; margin-bottom: 20px; }
+          .alert-box { padding: 20px; border-left: 4px solid ${isOverdue ? "#b3261e" : "#b8860b"}; background-color: ${isOverdue ? "#fdf2f2" : "#fefdf0"}; color: ${isOverdue ? "#b3261e" : "#b8860b"}; font-size: 13px; font-weight: bold; line-height: 1.6; margin-bottom: 20px; }
           .details-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
           .details-table td { padding: 10px; border-bottom: 1px solid #f4f5f7; font-size: 13px; }
           .details-table td.label { color: #5c5f66; font-weight: bold; width: 35%; }
           .details-table td.value { font-weight: 500; }
-          .payment-box { background-color: #f4f5f7; border: 1px solid #d6d9dd; padding: 15px; margin-bottom: 25px; }
-          .payment-box h3 { font-size: 13px; color: #11499e; margin: 0 0 10px 0; text-transform: uppercase; }
-          .payment-box p { font-size: 12px; margin: 5px 0; line-height: 1.5; color: #5c5f66; }
           .footer { font-size: 11px; color: #5c5f66; border-top: 1px solid #d6d9dd; padding-top: 15px; text-align: center; margin-top: 25px; line-height: 1.5; }
         </style>
       </head>
       <body>
         <div class="container">
           <div class="header">
-            <h1>TBIG Subs</h1>
+            <h1>SPARK</h1>
+            <p>Monitoring Temporary Power</p>
           </div>
           <div class="greeting">
-            Yth. <strong>${customer.name}</strong>,
+            Yth. Bapak/Ibu Mitra CME / Pengelola Site,
           </div>
+          
           <div class="alert-box">
+            MOHON SEGERA DILAKUKAN PENGURUSAN REGISTER PERPANJANGAN PERIODE PENYAMBUNGAN PLN SEMENTARA/MULTIGUNA DAN SEGERA DILAKUKAN PEMBAYARAN REGISTER.
+            <br/><br/>
             ${
               isOverdue
-                ? "PERINGATAN: Layanan langganan Anda telah melewati batas waktu tanggal jatuh tempo pembayaran. Harap segera melunasi tagihan Anda."
-                : `PEMBERITAHUAN: Tagihan langganan Anda akan jatuh tempo dalam ${daysUntilDue} hari.`
+                ? "Status: Masa berlaku penyambungan PLN Sementara/Multiguna TELAH MELEWATI BATAS WAKTU."
+                : `Status: Masa berlaku penyambungan PLN Sementara/Multiguna akan berakhir dalam ${daysUntilDue} hari.`
             }
           </div>
           
           <table class="details-table">
             <tr>
+              <td class="label">Nama Site</td>
+              <td class="value">${sub.site?.name ?? "-"}</td>
+            </tr>
+            <tr>
+              <td class="label">Site ID</td>
+              <td class="value">${sub.site?.code ?? "-"}</td>
+            </tr>
+            <tr>
               <td class="label">Paket Layanan</td>
               <td class="value">${sub.plan.name}</td>
-            </tr>
-            <tr>
-              <td class="label">Lokasi / Site</td>
-              <td class="value">${sub.site?.name ?? "-"} (${sub.site?.city ?? "-"})</td>
-            </tr>
-            <tr>
-              <td class="label">Nominal Tagihan</td>
-              <td class="value" style="color: #11499e; font-weight: bold;">${formattedAmount}</td>
             </tr>
             <tr>
               <td class="label">Jatuh Tempo</td>
               <td class="value" style="color: #b3261e; font-weight: bold;">${formattedDueDate}</td>
             </tr>
+            <tr>
+              <td class="label">MG Type</td>
+              <td class="value">${sub.mgSuplisiNormal ?? "-"}</td>
+            </tr>
           </table>
 
-          <div class="payment-box">
-            <h3>Instruksi Pembayaran</h3>
-            <p>Pembayaran dapat dilakukan melalui transfer bank ke rekening berikut:</p>
-            <p><strong>Bank Mandiri</strong><br>No. Rekening: <strong>123-00-9876543-21</strong><br>Atas Nama: <strong>PT Tower Bersama Infrastructure</strong></p>
-            <p style="margin-top: 10px; font-style: italic;">*Harap lampirkan bukti pembayaran dengan membalas email ini atau hubungi kontak kami jika pembayaran telah dilakukan.</p>
-          </div>
-
           <p class="greeting" style="font-size: 12px; color: #5c5f66;">
-            Jika Anda sudah melakukan pembayaran, mohon abaikan email pemberitahuan ini. Terima kasih atas kerja samanya.
+            Harap segera melakukan koordinasi dengan pihak PLN terkait dan menyelesaikan pembayaran register perpanjangan. Abaikan pemberitahuan ini apabila proses perpanjangan sudah dilakukan. Terima kasih atas perhatian dan kerja samanya.
           </p>
 
           <div class="footer">
-            Sistem Pengingat Otomatis - TBIG Subs<br>
-            Jl. Jend. Gatot Subroto Kav. 38, Jakarta 12710<br>
-            Kontak Admin: CS@towerbersama.com
+            Sistem Monitoring Temporary Power - SPARK<br>
+            Jl. Jend. Gatot Subroto Kav. 38, Jakarta 12710
           </div>
         </div>
       </body>
@@ -177,7 +180,8 @@ export async function runReminderJob(): Promise<{
     `;
 
     const result = await sendMail({
-      to: recipientEmail,
+      to: toEmail,
+      cc: ccEmail,
       subject,
       html,
     });
@@ -189,7 +193,7 @@ export async function runReminderJob(): Promise<{
         status: result.success ? "SENT" : "FAILED",
         type: isOverdue ? "OVERDUE" : daysUntilDue === 1 ? "H1" : "DUE_SOON",
         triggerType: `${triggerType}:${todayKey}`,
-        recipient: recipientEmail,
+        recipient: toEmail,
         subject,
         message: html,
         sentAt: new Date(),
@@ -233,6 +237,7 @@ export async function sendManualReminder(
       customer: true,
       site: { include: { customer: true } },
       plan: true,
+      contractor: true,
     },
   });
 
@@ -241,17 +246,21 @@ export async function sendManualReminder(
   }
 
   const customer = sub.customer ?? sub.site.customer;
-  const rawRecipient = customer.email;
-  if (!rawRecipient) {
-    return { success: false, error: "Pelanggan tidak memiliki alamat email" };
-  }
+  const adminEmail = customer.email ? customer.email.replace(/;/g, ",") : "";
+  const contractorEmail = sub.contractor?.email ? sub.contractor.email.trim() : null;
 
-  const recipientEmail = rawRecipient.replace(/;/g, ",");
-  const formattedAmount = new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(Number(sub.amount));
+  let toEmail = "";
+  let ccEmail: string | undefined = undefined;
+
+  // Send to Mitra (Contractor) as TO, and Admin as CC
+  if (contractorEmail) {
+    toEmail = contractorEmail;
+    ccEmail = adminEmail || undefined;
+  } else if (adminEmail) {
+    toEmail = adminEmail;
+  } else {
+    return { success: false, error: "Tidak ada email penerima (Mitra/Admin) yang dikonfigurasi" };
+  }
 
   const formattedDueDate = sub.dueDate
     ? sub.dueDate.toLocaleDateString("id-ID", {
@@ -262,7 +271,7 @@ export async function sendManualReminder(
       })
     : "-";
 
-  const subject = `[PENGINGAT MANUAL] Tagihan Jatuh Tempo - ${customer.name}`;
+  const subject = `[PENGINGAT MANUAL SPARK] Jatuh Tempo Penyambungan PLN Sementara - ${sub.site.name}`;
 
   const html = `
     <!DOCTYPE html>
@@ -273,65 +282,62 @@ export async function sendManualReminder(
         body { font-family: Arial, sans-serif; background-color: #f4f5f7; color: #1a1a1a; margin: 0; padding: 20px; }
         .container { max-width: 600px; background-color: #ffffff; border: 2px solid #d6d9dd; padding: 30px; margin: 0 auto; }
         .header { text-align: center; border-bottom: 1px solid #d6d9dd; padding-bottom: 20px; margin-bottom: 20px; }
-        .header h1 { color: #11499e; font-size: 20px; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+        .header h1 { color: #11499e; font-size: 24px; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+        .header p { font-size: 11px; color: #5c5f66; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 1px; }
         .greeting { font-size: 14px; line-height: 1.6; margin-bottom: 15px; }
-        .alert-box { padding: 15px; border-left: 4px solid #11499e; background-color: #f0f4fa; color: #11499e; font-size: 13px; font-weight: bold; margin-bottom: 20px; }
+        .alert-box { padding: 20px; border-left: 4px solid #11499e; background-color: #f0f4fa; color: #11499e; font-size: 13px; font-weight: bold; line-height: 1.6; margin-bottom: 20px; }
         .details-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
         .details-table td { padding: 10px; border-bottom: 1px solid #f4f5f7; font-size: 13px; }
         .details-table td.label { color: #5c5f66; font-weight: bold; width: 35%; }
         .details-table td.value { font-weight: 500; }
-        .payment-box { background-color: #f4f5f7; border: 1px solid #d6d9dd; padding: 15px; margin-bottom: 25px; }
-        .payment-box h3 { font-size: 13px; color: #11499e; margin: 0 0 10px 0; text-transform: uppercase; }
-        .payment-box p { font-size: 12px; margin: 5px 0; line-height: 1.5; color: #5c5f66; }
         .footer { font-size: 11px; color: #5c5f66; border-top: 1px solid #d6d9dd; padding-top: 15px; text-align: center; margin-top: 25px; line-height: 1.5; }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
-          <h1>TBIG Subs</h1>
+          <h1>SPARK</h1>
+          <p>Monitoring Temporary Power</p>
         </div>
         <div class="greeting">
-          Yth. <strong>${customer.name}</strong>,
+          Yth. Bapak/Ibu Mitra CME / Pengelola Site,
         </div>
         <div class="alert-box">
-          PENGINGAT MANUAL: Layanan langganan Anda memerlukan perhatian pembayaran. Harap tinjau detail tagihan Anda di bawah ini.
+          MOHON SEGERA DILAKUKAN PENGURUSAN REGISTER PERPANJANGAN PERIODE PENYAMBUNGAN PLN SEMENTARA/MULTIGUNA DAN SEGERA DILAKUKAN PEMBAYARAN REGISTER.
+          <br/><br/>
+          Status: PENGINGAT MANUAL - Masa berlaku penyambungan PLN Sementara/Multiguna memerlukan perhatian pengurusan perpanjangan segera.
         </div>
         
         <table class="details-table">
+          <tr>
+            <td class="label">Nama Site</td>
+            <td class="value">${sub.site?.name ?? "-"}</td>
+          </tr>
+          <tr>
+            <td class="label">Site ID</td>
+            <td class="value">${sub.site?.code ?? "-"}</td>
+          </tr>
           <tr>
             <td class="label">Paket Layanan</td>
             <td class="value">${sub.plan.name}</td>
           </tr>
           <tr>
-            <td class="label">Lokasi / Site</td>
-            <td class="value">${sub.site?.name ?? "-"} (${sub.site?.city ?? "-"})</td>
-          </tr>
-          <tr>
-            <td class="label">Nominal Tagihan</td>
-            <td class="value" style="color: #11499e; font-weight: bold;">${formattedAmount}</td>
-          </tr>
-          <tr>
             <td class="label">Jatuh Tempo</td>
             <td class="value" style="color: #b3261e; font-weight: bold;">${formattedDueDate}</td>
           </tr>
+          <tr>
+            <td class="label">MG Type</td>
+            <td class="value">${sub.mgSuplisiNormal ?? "-"}</td>
+          </tr>
         </table>
 
-        <div class="payment-box">
-          <h3>Instruksi Pembayaran</h3>
-          <p>Pembayaran dapat dilakukan melalui transfer bank ke rekening berikut:</p>
-          <p><strong>Bank Mandiri</strong><br>No. Rekening: <strong>123-00-9876543-21</strong><br>Atas Nama: <strong>PT Tower Bersama Infrastructure</strong></p>
-          <p style="margin-top: 10px; font-style: italic;">*Harap lampirkan bukti pembayaran dengan membalas email ini atau hubungi kontak kami jika pembayaran telah dilakukan.</p>
-        </div>
-
         <p class="greeting" style="font-size: 12px; color: #5c5f66;">
-          Jika Anda sudah melakukan pembayaran, mohon abaikan email pemberitahuan ini. Terima kasih atas kerja samanya.
+          Harap segera melakukan koordinasi dengan pihak PLN terkait dan menyelesaikan pembayaran register perpanjangan. Abaikan pemberitahuan ini apabila proses perpanjangan sudah dilakukan. Terima kasih atas perhatian dan kerja samanya.
         </p>
 
         <div class="footer">
-          Sistem Pengingat Otomatis - TBIG Subs<br>
-          Jl. Jend. Gatot Subroto Kav. 38, Jakarta 12710<br>
-          Kontak Admin: CS@towerbersama.com
+          Sistem Monitoring Temporary Power - SPARK<br>
+          Jl. Jend. Gatot Subroto Kav. 38, Jakarta 12710
         </div>
       </div>
     </body>
@@ -339,7 +345,8 @@ export async function sendManualReminder(
   `;
 
   const result = await sendMail({
-    to: recipientEmail,
+    to: toEmail,
+    cc: ccEmail,
     subject,
     html,
   });
@@ -351,7 +358,7 @@ export async function sendManualReminder(
       status: result.success ? "SENT" : "FAILED",
       type: "DUE_SOON",
       triggerType: "MANUAL",
-      recipient: recipientEmail,
+      recipient: toEmail,
       subject,
       message: html,
       sentAt: new Date(),
@@ -364,7 +371,7 @@ export async function sendManualReminder(
     action: "SEND_MANUAL_REMINDER",
     entityType: "Subscription",
     entityId: sub.id,
-    newValue: { recipient: recipientEmail, success: result.success },
+    newValue: { recipient: toEmail, cc: ccEmail, success: result.success },
   });
 
   return result;

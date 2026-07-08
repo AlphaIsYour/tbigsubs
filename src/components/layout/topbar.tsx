@@ -38,7 +38,7 @@ export function Topbar({
           </svg>
         </button>
         <span className="text-sm text-ink font-semibold">
-          TBIG Subs
+          SPARK
         </span>
       </div>
 

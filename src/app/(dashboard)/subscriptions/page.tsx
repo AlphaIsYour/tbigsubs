@@ -38,6 +38,7 @@ export default async function SubscriptionsPage({
 
   const where = {
     deletedAt: null,
+    type: "MONTHLY" as const,
     ...(status
       ? {
           status: status as
@@ -48,7 +49,6 @@ export default async function SubscriptionsPage({
             | "CANCELLED",
         }
       : {}),
-    ...(type ? { type: type as "PERMANENT" | "MONTHLY" } : {}),
     ...(search
       ? {
           OR: [
@@ -115,15 +115,6 @@ export default async function SubscriptionsPage({
           <option value="OVERDUE">Lewat Jatuh Tempo</option>
           <option value="SUSPENDED">Ditangguhkan</option>
           <option value="CANCELLED">Dibatalkan</option>
-        </select>
-        <select
-          name="type"
-          defaultValue={type}
-          className="border border-border px-3 py-2 text-sm"
-        >
-          <option value="">Semua Tipe</option>
-          <option value="PERMANENT">Permanen</option>
-          <option value="MONTHLY">Bulanan</option>
         </select>
         <button
           type="submit"

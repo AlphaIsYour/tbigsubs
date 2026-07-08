@@ -54,17 +54,6 @@ async function main() {
   });
   console.log("✅ Admin Joko terdaftar.");
 
-  const admin2 = await db.user.create({
-    data: {
-      email: "dessy.nirmalasari@tower-bersama.com",
-      name: "Dessy Nirmalasari",
-      passwordHash,
-      role: "ADMIN",
-      isActive: true,
-    },
-  });
-  console.log("✅ Admin Dessy terdaftar.");
-
   const admin3 = await db.user.create({
     data: {
       email: "alphrenoorz@gmail.com",
@@ -82,7 +71,7 @@ async function main() {
     data: {
       code: "PLN-MG",
       name: "PLN Multiguna Client",
-      email: "joko.iswanto@tower-bersama.com; dessy.nirmalasari@tower-bersama.com",
+      email: "joko.iswanto@tower-bersama.com",
       phone: "021-29248900",
       address: "Gedung Tower Bersama, Jakarta",
       isActive: true,

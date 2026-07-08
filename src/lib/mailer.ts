@@ -12,6 +12,7 @@ const transporter = nodemailer.createTransport({
 
 export interface SendMailParams {
   to: string;
+  cc?: string;
   subject: string;
   html: string;
 }
@@ -24,6 +25,7 @@ export async function sendMail(params: SendMailParams): Promise<{
     await transporter.sendMail({
       from: `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_FROM_EMAIL}>`,
       to: params.to,
+      cc: params.cc,
       subject: params.subject,
       html: params.html,
     });

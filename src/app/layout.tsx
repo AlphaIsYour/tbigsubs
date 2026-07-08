@@ -3,8 +3,8 @@ import "./globals.css";
 import { SessionProvider } from "@/components/providers/session-provider";
 
 export const metadata: Metadata = {
-  title: "TBIG Subs - Subscription & Billing Reminder System",
-  description: "Internal billing reminder system",
+  title: "SPARK - Monitoring Temporary Power",
+  description: "Monitoring temporary power billing reminder system",
 };
 
 export const viewport: Viewport = {

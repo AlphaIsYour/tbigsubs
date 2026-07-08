@@ -7,10 +7,10 @@ import Image from "next/image";
 
 const MENU = [
   { label: "Dashboard", href: "/dashboard" },
-  { label: "Pelanggan", href: "/customers" },
+  // { label: "Pelanggan", href: "/customers" },
   { label: "Lokasi/Site", href: "/sites" },
   { label: "Kontraktor", href: "/contractors" },
-  { label: "Langganan", href: "/subscriptions" },
+  { label: "Temporary Power", href: "/subscriptions" },
   { label: "Pembayaran", href: "/payments" },
   { label: "Notifikasi", href: "/notifications" },
   { label: "Log Audit", href: "/audit-logs" },
@@ -59,9 +59,9 @@ export function Sidebar({
         `}
       >
         <div className="flex items-center gap-2 px-3 py-4 border-b border-white/20 h-14">
-          <Image src="/tbigsubs.png" alt="TBIG Subs Logo" width={24} height={24} className="object-contain shrink-0" />
+          <Image src="/tbigsubs.png" alt="SPARK Logo" width={24} height={24} className="object-contain shrink-0" />
           <span className="font-bold text-sm tracking-wide uppercase truncate">
-            TBIG Subs
+            SPARK
           </span>
           <button
             onClick={onMobileClose}
@@ -116,9 +116,9 @@ export function Sidebar({
         }`}>
           {!desktopCollapsed && (
             <div className="flex items-center gap-2 overflow-hidden">
-              <Image src="/tbigsubs.png" alt="TBIG Subs Logo" width={24} height={24} className="object-contain shrink-0" />
+              <Image src="/tbigsubs.png" alt="SPARK Logo" width={24} height={24} className="object-contain shrink-0" />
               <span className="font-bold text-sm tracking-wide uppercase truncate">
-                TBIG Subs
+                SPARK
               </span>
             </div>
           )}
